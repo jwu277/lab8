@@ -1,5 +1,6 @@
 package postfix;
 
+import java.util.EmptyStackException;
 import java.util.Stack;
 
 /**
@@ -15,6 +16,11 @@ import java.util.Stack;
 public class PostfixEvaluator {
 	
 	private String arithmeticExpr;
+
+	private double value;
+	private boolean evaluated = false;
+
+	private Stack<Double> valueStack = new Stack<Double>();
 	
 	/**
 	 * This is the only constructor for this class.
@@ -37,28 +43,75 @@ public class PostfixEvaluator {
 	 * 	a valid expression in Postfix notation
 	 */
 	double eval( ) throws MalformedExpressionException {
-		// TODO: Implement this method.
-		// The code provided here is for illustration only, and
-		// can be deleted when you write your implementation.
 
-		// Using a stack makes it very simple to evaluate the
-		// arithmetic expression.
-		// See http://docs.oracle.com/javase/8/docs/api/java/util/Stack.html
-		
-		// Use the Scanner to get the elements (tokens) in the
-		// arithmetic expression.
+	    if (evaluated == true) {
+	        return value;
+        }
 		
 		Scanner scanner = new Scanner(arithmeticExpr);
-		Token currToken = scanner.getToken();
-		
-		// now process the token, etc.
-		// You should read the implementation of the Token class
-		// to determine what methods you can and should use.
-		
-		// It is sufficient to support the four basic operations:
-		// addition, subtraction, multiplication & division.
-		
-		return 0.0;
+
+        Token currToken;
+
+	    while (!scanner.isEmpty()) {
+	        currToken = scanner.getToken();
+            scanner.eatToken();
+	        processToken(currToken);
+        }
+
+        if (valueStack.isEmpty()) {
+            throw new MalformedExpressionException();
+        }
+
+        double topVal = valueStack.pop();
+
+        if (!valueStack.isEmpty()) {
+            throw new MalformedExpressionException();
+        }
+
+        value = topVal;
+        evaluated = true;
+
+		return value;
+
 	}
+
+	private void processToken(Token tkn) throws MalformedExpressionException {
+
+	    if (tkn.isDouble()) {
+	        valueStack.push(tkn.getValue());
+        }
+        else {
+            performOperation(tkn.getName());
+        }
+
+    }
+
+    private void performOperation(String s) throws MalformedExpressionException {
+
+        try {
+            switch (s) {
+
+                case "+":
+                    valueStack.push(valueStack.pop() + valueStack.pop());
+                    break;
+                case "-":
+                    valueStack.push(-valueStack.pop() + valueStack.pop());
+                    break;
+                case "*":
+                    valueStack.push(valueStack.pop() * valueStack.pop());
+                    break;
+                case "/":
+                    valueStack.push(1 /valueStack.pop() * valueStack.pop());
+                    break;
+                default:
+                    throw new MalformedExpressionException();
+
+            }
+        }
+        catch (EmptyStackException e) {
+            throw new MalformedExpressionException();
+        }
+
+    }
 	
 }
